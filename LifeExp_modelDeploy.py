@@ -15,7 +15,8 @@ from sklearn.compose import ColumnTransformer
 
 # ========= PAGE CONFIG =========
 st.set_page_config(
-    page_title="Life Expectancy (WHO) — Actual + Predict",
+    page_title="Global Life Expectancy Prediction by Country",
+    page_icon=':globe_with_meridians:',
     layout="wide",
 )
 
