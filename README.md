@@ -172,3 +172,24 @@ SELECTED_FEATURES = [
     "under-five deaths",
     "HIV/AIDS",
 ]
+```
+
+## 📈 Future Improvements
+
+- Add confidence intervals for predictions
+- Include Year trend modeling
+- Deploy online via Streamlit Cloud
+- Improve UI styling and filtering
+- Add charts for indicator sensitivity analysis
+
+## 📚 References
+
+- WHO Global Health Observatory Dataset
+- Kaggle Life Expectancy Dataset
+- Natural Earth Boundary Data (Admin-0, Admin-1)
+
+## 👨‍🎓 Author
+
+- Developed by [Mr. Sophon THOY](https://github.com/sophon-pro)
+- Developed as a Machine Learning and Data Science Final Project
+- using WHO global health indicators and spatial visualization.
