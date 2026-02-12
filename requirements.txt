@@ -1,14 +1,9 @@
-streamlit
-numpy
-os
-pandas
-scikit-learn
-kagglehub
-geopandas
-folium
-leafmap
-streamlit_folium
-pyproj
-shapely
-fiona
-pickle
+streamlit == 1.54.0
+numpy == 2.4.1
+pandas == 2.3.3
+scikit-learn == 1.8.0
+kagglehub == 0.4.3
+geopandas == 1.1.2
+folium == 0.20.0
+leafmap == 0.60.0
+streamlit_folium == 0.26.1
