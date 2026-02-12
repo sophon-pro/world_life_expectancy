@@ -1,0 +1,14 @@
+streamlit
+numpy
+os
+pandas
+scikit-learn
+kagglehub
+geopandas
+folium
+leafmap
+streamlit_folium
+pyproj
+shapely
+fiona
+pickle
