@@ -21,7 +21,6 @@ st.set_page_config(
 )
 
 TARGET_COL = "Life expectancy"
-
 SELECTED_FEATURES = [
     "Schooling",
     "Alcohol",
@@ -42,8 +41,6 @@ SELECTED_FEATURES = [
 
 KAGGLE_DATASET = "kumarajarshi/life-expectancy-who"
 KAGGLE_FILENAME = "Life Expectancy Data.csv"
-
-# ========= Natural Earth boundaries =========
 NE_ADMIN0_URL = "https://naciscdn.org/naturalearth/10m/cultural/ne_10m_admin_0_countries.zip"
 NE_ADMIN1_URL = "https://naciscdn.org/naturalearth/10m/cultural/ne_10m_admin_1_states_provinces.zip"
 
@@ -63,10 +60,6 @@ def coerce_numeric(df: pd.DataFrame, cols: list[str]) -> pd.DataFrame:
     return df
 
 def get_required_input_columns(model) -> list[str] | None:
-        """
-        Try to infer the raw input columns the pipeline was trained on.
-        Works for many sklearn Pipelines/ColumnTransformers.
-        """
         # Newer sklearn sometimes stores this directly
         cols = getattr(model, "feature_names_in_", None)
         if cols is not None:
@@ -93,7 +86,6 @@ def build_aligned_row(required_cols: list[str], inputs: dict, latest: pd.Series,
             row[c] = int(year)
             continue
         if c == "Country":
-            # some pipelines include Country; if you have it, fill it; otherwise dummy
             row[c] = str(latest.get("Country", ""))
             continue
         if c == "Status":
@@ -105,7 +97,7 @@ def build_aligned_row(required_cols: list[str], inputs: dict, latest: pd.Series,
         # Priority 3: auto-fill from latest dataset row
         v = latest.get(c, np.nan)
         if pd.isna(v):
-            # safe numeric default (your pipeline likely imputes anyway)
+            # safe numeric default
             row[c] = 0.0
         else:
             row[c] = v
@@ -117,44 +109,6 @@ def load_kaggle_who_dataset() -> pd.DataFrame:
     csv_path = os.path.join(path, KAGGLE_FILENAME)
     df = pd.read_csv(csv_path)
     return normalize_columns(df)
-
-
-# @st.cache_resource(show_spinner=False)
-# def train_lasso_model(df: pd.DataFrame) -> Pipeline:
-#     required = ["Country", "Year", TARGET_COL] + SELECTED_FEATURES
-#     missing = [c for c in required if c not in df.columns]
-#     if missing:
-#         raise ValueError(f"Missing required columns: {missing}")
-
-#     df2 = df.dropna(subset=["Country", "Year", TARGET_COL]).copy()
-#     df2["Country"] = df2["Country"].astype(str)
-
-#     df2 = coerce_numeric(df2, ["Year"] + SELECTED_FEATURES + [TARGET_COL])
-#     df2["Year"] = df2["Year"].astype(int)
-
-#     X = df2[SELECTED_FEATURES]
-#     y = df2[TARGET_COL].astype(float)
-#     groups = df2["Country"]
-
-#     gkf = GroupKFold(n_splits=5)
-
-#     model = Pipeline(
-#         steps=[
-#             ("imputer", SimpleImputer(strategy="median")),
-#             (
-#                 "lasso",
-#                 LassoCV(
-#                     alphas=np.logspace(-4, 1, 200),
-#                     cv=gkf.split(X, y, groups=groups),
-#                     max_iter=50000,
-#                     n_jobs=None,
-#                     random_state=42,
-#                 ),
-#             ),
-#         ]
-#     )
-#     model.fit(X, y)
-#     return model
 
 def find_actual_row(df: pd.DataFrame, country: str, year: int) -> pd.DataFrame:
     return df[(df["Country"].astype(str) == str(country)) & (df["Year"].astype(int) == int(year))].copy()
@@ -175,7 +129,7 @@ def metric_years(label: str, value: float):
     st.metric(label=label, value=f"{value:.2f} years")
 
 
-# ========= MAP HELPERS (Natural Earth Admin-0 + Admin-1 with CLEAN tooltips) =========
+# ========= MAP HELPERS =========
 @st.cache_data(show_spinner=False)
 def load_admin0() -> gpd.GeoDataFrame:
     gdf = gpd.read_file(NE_ADMIN0_URL)
@@ -259,7 +213,6 @@ with st.sidebar:
     st.header("Dataset")
     st.write("The dataset is automatically downloaded from KaggleHub.")
 
-    # Kaggle secrets (won't crash if secrets.toml missing)
     try:
         kaggle_user = st.secrets.get("KAGGLE_USERNAME", None)
         kaggle_key = st.secrets.get("KAGGLE_KEY", None)
@@ -319,20 +272,7 @@ st.caption(
     f"Dataset downloaded from **{data_source}** | Years: **{min_year}–{max_year}** | Countries: **{len(countries)}**"
 )
 
-# Train model (cached)
-# with st.spinner("Training Lasso model (cached)…"):
-#     model = train_lasso_model(df)
-# alpha = float(model.named_steps["lasso"].alpha_)
-# st.success(f"Lasso model ready ✅ (alpha = {alpha:.6g})")
-
-# with st.expander("Show Lasso-selected variables (features used)"):
-#     st.write(SELECTED_FEATURES)
-
 def add_log_gdp(X):
-    """
-    Custom transformer used during training.
-    Must exist when unpickling the model.
-    """
     X = X.copy()
     if "GDP" in X.columns:
         X["GDP_log"] = np.log1p(X["GDP"])
@@ -363,7 +303,7 @@ if not ADMIN0_NAME or not ADMIN0_ISO or not ADMIN1_NAME or not ADMIN1_LINK:
         "Try printing admin0.columns/admin1.columns and adjust the column names."
     )
 
-# ========= Controls (world-first) =========
+# ========= Controls =========
 if "ui_country" not in st.session_state:
     st.session_state["ui_country"] = "-- Select a country --"
 if "ui_year" not in st.session_state:
@@ -389,7 +329,7 @@ with c2:
         key="ui_year",      
     )
 
-# Read current values (always up-to-date on rerun)
+# Read current values
 country = st.session_state["ui_country"]
 year = int(st.session_state["ui_year"])
 
